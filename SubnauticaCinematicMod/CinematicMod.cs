@@ -1,5 +1,6 @@
 ﻿using System;
 using HarmonyLib;
+using JetBrains.Annotations;
 using QModManager.API.ModLoading;
 using QModManager.Utility;
 using SMLHelper.V2.Handlers;
@@ -7,15 +8,17 @@ using SMLHelper.V2.Handlers;
 namespace SubnauticaCinematicMod
 {
     [QModCore]
-    public class Initializer
+    public class CinematicMod
     {
         // private static CameraMenu _cameraMenu;
         public static PathManager PathManager;
+        internal static Config Config { get; private set; }
         [QModPatch]
         public static void InitializerMethod()
         {
             // _cameraMenu = CameraMenu.Instance;
             ConsoleCommandsHandler.Main.RegisterConsoleCommands(typeof(Commands));
+            Config = OptionsPanelHandler.RegisterModOptions<Config>();
             Harmony harmony = new Harmony("CinematicMod");
             harmony.PatchAll();
         }
@@ -28,7 +31,7 @@ namespace SubnauticaCinematicMod
         public static void Postfix()
         {
             Logger.Log(Logger.Level.Debug, "Postfix Awake");
-            Initializer.PathManager = PathManager.Instance;
+            CinematicMod.PathManager = PathManager.Instance;
         }
     }
 }

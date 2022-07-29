@@ -297,8 +297,8 @@
         <Compile Include="CameraPoint.cs" />
         <Compile Include="CatmullUtils.cs" />
         <Compile Include="Commands.cs" />
-        <Compile Include="ComponentUtils.cs" />
-        <Compile Include="Init.cs" />
+        <Compile Include="Config.cs" />
+        <Compile Include="CinematicMod.cs" />
         <Compile Include="PathManager.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
     </ItemGroup>

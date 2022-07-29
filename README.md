@@ -15,6 +15,7 @@ path works with points that will be interpolated to form a path.
 To add a point, move where you want to add your point (easier with free cam),
 adjust roll and FOV, then execute `addpoint` command.
 
+### View path
 Once you have setup at least 2 points, you will be able to execute command : `runpath <time>`,
 with parameter time being the duration of the path in seconds. Example: `runpath 15` will make a 15 seconds long path.
 
@@ -42,6 +43,8 @@ with parameter time being the duration of the path in seconds. Example: `runpath
 - GUI Edition of path
 - More interpolations
 - More speed and path control
+- Big code refactoring and cleaning since I'm bad at C#
+- Video export if possible with unity
 
 ## Other
 [![License](https://img.shields.io/badge/license-CC--BY--NC-orange?style=flat-square&logo=creative-commons)](https://github.com/MoreOwO/Subnautica-Cinematic-Mod/blob/main/LICENSE.md)

@@ -4,7 +4,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using QModManager.API;
 using UnityEngine;
-using UnityEngine.PostProcessing;
 using Logger = QModManager.Utility.Logger;
 
 
@@ -25,23 +24,25 @@ namespace SubnauticaCinematicMod
         private readonly List<Segment> _segments = new();
         private LineRenderer _linearLine;
         private LineRenderer _interpolatedLine;
-        private const float InterpolatedLineSmoothness = 0.01f;
+        public static bool IsAlive = false;
+        private float _interpolatedLineSmoothness => CinematicMod.Config.PathPreviewInterpolatedLineSmoothness;
         private bool _firstTimeRunningPath = true;
         private readonly List<float> _segmentsDurations = new();
+        private Camera _uiCamera;
         private int _currentIndex;
-        public bool showLines = false;
+        public bool showLines;
 
         public static PathManager Instance
         {
             get
             {
                 if (_instance != null) return _instance;
-                Logger.Log(Logger.Level.Debug, "Creating PathManager");
                 _dummyObject = new GameObject("PathManager");
                 _dummyObject.hideFlags = HideFlags.HideInHierarchy;
                 DontDestroyOnLoad(_dummyObject);
                 _dummyObject.AddComponent<SceneCleanerPreserve>();
                 _instance = _dummyObject.AddComponent<PathManager>();
+                IsAlive = true;
                 return _instance;
             }
         }
@@ -67,6 +68,8 @@ namespace SubnauticaCinematicMod
             _interpolatedLine.startWidth = _interpolatedLine.endWidth = 0.1f;
             _interpolatedLine.startColor = _interpolatedLine.endColor = new Color(1f, 1f, 0, 1f);
             _interpolatedLine.material = UnityEngine.UI.Graphic.defaultGraphicMaterial;
+
+            _uiCamera = GameObject.Find("Main Camera (UI)").GetComponent<Camera>();
         }
 
         public float? RunPath(int? duration)
@@ -100,7 +103,7 @@ namespace SubnauticaCinematicMod
             float[] lengthOfEverySegment = new float[_segments.Count];
             for (int i=0; i < _segments.Count; i++)
             {
-                lengthOfEverySegment[i] = CatmullUtils.GetLengthOfSegment(_segments[i], InterpolatedLineSmoothness);
+                lengthOfEverySegment[i] = CatmullUtils.GetLengthOfSegment(_segments[i], _interpolatedLineSmoothness);
             }
             
             float totalDistance = lengthOfEverySegment.Sum();
@@ -241,7 +244,7 @@ namespace SubnauticaCinematicMod
             _linearLine.positionCount = lineVectors.Length;
             _linearLine.SetPositions(lineVectors);
 
-            for (float i = 0; i < lineSegments.Count; i += InterpolatedLineSmoothness)
+            for (float i = 0; i <= lineSegments.Count; i += _interpolatedLineSmoothness)
             {
                 int currentSegmentIndex = CurrentSegmentIndex(i, 1);
                 float timeInSegment = (i - currentSegmentIndex * 1) / ((currentSegmentIndex + 1) * 1 - currentSegmentIndex * 1);
@@ -282,6 +285,7 @@ namespace SubnauticaCinematicMod
             }
             HidePath();
             _isDoingPath = true;
+            _uiCamera.enabled = false;
             Player player = Player.main;
             player.EnterLockedMode(null, false);
             player.SetHeadVisible(true);
@@ -299,6 +303,7 @@ namespace SubnauticaCinematicMod
             _isDoingPath = false;
             _timeElapsed = 0;
             _currentIndex = 0;
+            _uiCamera.enabled = true;
             Player player = Player.main;
             player.ExitLockedMode(false, false);
             player.SetHeadVisible(false);
