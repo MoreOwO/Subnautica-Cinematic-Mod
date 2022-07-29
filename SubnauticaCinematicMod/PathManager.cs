@@ -24,11 +24,10 @@ namespace SubnauticaCinematicMod
         private readonly List<Segment> _segments = new();
         private LineRenderer _linearLine;
         private LineRenderer _interpolatedLine;
-        public static bool IsAlive = false;
-        private float _interpolatedLineSmoothness => CinematicMod.Config.PathPreviewInterpolatedLineSmoothness;
+        public static bool IsAlive;
+        private static float InterpolatedLineSmoothness => CinematicMod.Config.PathPreviewInterpolatedLineSmoothness;
         private bool _firstTimeRunningPath = true;
         private readonly List<float> _segmentsDurations = new();
-        private Camera _uiCamera;
         private int _currentIndex;
         public bool showLines;
 
@@ -37,8 +36,10 @@ namespace SubnauticaCinematicMod
             get
             {
                 if (_instance != null) return _instance;
-                _dummyObject = new GameObject("PathManager");
-                _dummyObject.hideFlags = HideFlags.HideInHierarchy;
+                _dummyObject = new GameObject("PathManager")
+                {
+                    hideFlags = HideFlags.HideInHierarchy
+                };
                 DontDestroyOnLoad(_dummyObject);
                 _dummyObject.AddComponent<SceneCleanerPreserve>();
                 _instance = _dummyObject.AddComponent<PathManager>();
@@ -46,30 +47,31 @@ namespace SubnauticaCinematicMod
                 return _instance;
             }
         }
-
-        // ReSharper disable all UseObjectOrCollectionInitializer
+        
         public void Start()
         {
-            GameObject linearLineGO = new GameObject("LinearLine");
-            linearLineGO.hideFlags = HideFlags.HideInHierarchy;
-            DontDestroyOnLoad(linearLineGO);
-            linearLineGO.AddComponent<SceneCleanerPreserve>();
-            _linearLine = linearLineGO.AddComponent<LineRenderer>();
+            GameObject linearLineGo = new GameObject("LinearLine")
+            {
+                hideFlags = HideFlags.HideInHierarchy
+            };
+            DontDestroyOnLoad(linearLineGo);
+            linearLineGo.AddComponent<SceneCleanerPreserve>();
+            _linearLine = linearLineGo.AddComponent<LineRenderer>();
             _linearLine.startWidth = _linearLine.endWidth = 0.1f;
             _linearLine.startColor = _linearLine.endColor = new Color(1f, 0, 0, 1f);
             _linearLine.material = UnityEngine.UI.Graphic.defaultGraphicMaterial;
 
             
-            GameObject interpolatedLineGO = new GameObject("InterpolatedLine");
-            interpolatedLineGO.hideFlags = HideFlags.HideInHierarchy;
-            DontDestroyOnLoad(interpolatedLineGO);
-            interpolatedLineGO.AddComponent<SceneCleanerPreserve>();
-            _interpolatedLine = interpolatedLineGO.AddComponent<LineRenderer>();
+            GameObject interpolatedLineGo = new GameObject("InterpolatedLine")
+            {
+                hideFlags = HideFlags.HideInHierarchy
+            };
+            DontDestroyOnLoad(interpolatedLineGo);
+            interpolatedLineGo.AddComponent<SceneCleanerPreserve>();
+            _interpolatedLine = interpolatedLineGo.AddComponent<LineRenderer>();
             _interpolatedLine.startWidth = _interpolatedLine.endWidth = 0.1f;
             _interpolatedLine.startColor = _interpolatedLine.endColor = new Color(1f, 1f, 0, 1f);
             _interpolatedLine.material = UnityEngine.UI.Graphic.defaultGraphicMaterial;
-
-            _uiCamera = GameObject.Find("Main Camera (UI)").GetComponent<Camera>();
         }
 
         public float? RunPath(int? duration)
@@ -79,7 +81,7 @@ namespace SubnauticaCinematicMod
             if (duration != null) _pathDurationSeconds = duration.Value;
             if (_points.Count < 2)
             {
-                Logger.Log(Logger.Level.Error, "Not enough points");
+                Logger.Log(Logger.Level.Warn, "Not enough points");
                 QModServices.Main.AddCriticalMessage($"Not enough points, only {_points.Count} instead of 2");
                 return null;
             }
@@ -103,7 +105,7 @@ namespace SubnauticaCinematicMod
             float[] lengthOfEverySegment = new float[_segments.Count];
             for (int i=0; i < _segments.Count; i++)
             {
-                lengthOfEverySegment[i] = CatmullUtils.GetLengthOfSegment(_segments[i], _interpolatedLineSmoothness);
+                lengthOfEverySegment[i] = CatmullUtils.GetLengthOfSegment(_segments[i], InterpolatedLineSmoothness);
             }
             
             float totalDistance = lengthOfEverySegment.Sum();
@@ -116,10 +118,9 @@ namespace SubnauticaCinematicMod
             for (int i = 0; i < lengthOfEverySegment.Length; i++)
             {
                 Logger.Log(Logger.Level.Debug, $"index: {i}, dTotale: {totalDistance}, tTotal: {_pathDurationSeconds}, " +
-                                               $"dSegement: {lengthOfEverySegment[i]}, tSegment: {_segmentsDurations[i]}, vSegment: {lengthOfEverySegment[i] / _segmentsDurations[i]}");
+                                               $"dSegment: {lengthOfEverySegment[i]}, tSegment: {_segmentsDurations[i]}, vSegment: {lengthOfEverySegment[i] / _segmentsDurations[i]}");
             }
             
-            // _beforePathTransform = new CameraPoint(Camera.main.transform.position, Camera.main.transform.rotation, 70f);
             StartPathPlayerInit();
             return _pathDurationSeconds;
         }
@@ -128,37 +129,35 @@ namespace SubnauticaCinematicMod
         { 
             return (int) Math.Floor(currentTime / timePerSegment);
         }
-
-        // ReSharper disable all PossibleNullReferenceException
+        
         public void Update()
         {
             Transform cameraTransform = MainCamera.camera.transform;
-            if (Input.GetKey(KeyCode.LeftArrow))
+            if (Input.GetKey(CinematicMod.Config.RollLeftKeyBind))
             {
                 Vector3 rotation = cameraTransform.eulerAngles;
                 rotation.z += 1;
                 cameraTransform.eulerAngles = rotation;
             } 
-            else if (Input.GetKey(KeyCode.RightArrow))
+            else if (Input.GetKey(CinematicMod.Config.RollRightKeyBind))
             {
                 Vector3 rotation = cameraTransform.eulerAngles;
                 rotation.z -= 1;
                 cameraTransform.eulerAngles = rotation;
-            } else if (Input.GetKeyDown(KeyCode.DownArrow))
+            } else if (Input.GetKeyDown(CinematicMod.Config.RollResetKeyBind))
             {
                 Vector3 rotation = cameraTransform.eulerAngles;
                 rotation.z = 0;
                 cameraTransform.eulerAngles = rotation;
-            } else if (Input.GetKey(KeyCode.KeypadPlus))
+            } else if (Input.GetKey(CinematicMod.Config.FOVIncreaseKeyBind))
             {
-                Camera.main.fieldOfView += 1;
-            } else if (Input.GetKey(KeyCode.KeypadMinus))
+                Camera.main!.fieldOfView += 1;
+            } else if (Input.GetKey(CinematicMod.Config.FOVDecreaseKeyBind))
             {
-                Camera.main.fieldOfView -= 1;
-            }
-            else if (Input.GetKeyDown(KeyCode.KeypadEnter))
+                Camera.main!.fieldOfView -= 1;
+            } else if (Input.GetKeyDown(CinematicMod.Config.FOVResetKeyBind))
             {
-                Camera.main.fieldOfView = 70;
+                Camera.main!.fieldOfView = 70;
             } else if (Input.GetKeyDown(KeyCode.Escape) && _isDoingPath)
             {
                 StopPathPlayerFree();
@@ -244,7 +243,7 @@ namespace SubnauticaCinematicMod
             _linearLine.positionCount = lineVectors.Length;
             _linearLine.SetPositions(lineVectors);
 
-            for (float i = 0; i <= lineSegments.Count; i += _interpolatedLineSmoothness)
+            for (float i = 0; i <= lineSegments.Count; i += InterpolatedLineSmoothness)
             {
                 int currentSegmentIndex = CurrentSegmentIndex(i, 1);
                 float timeInSegment = (i - currentSegmentIndex * 1) / ((currentSegmentIndex + 1) * 1 - currentSegmentIndex * 1);
@@ -283,9 +282,11 @@ namespace SubnauticaCinematicMod
                 _firstTimeRunningPath = false;
                 return;
             }
+
+            if (_firstTimeRunningPath) _firstTimeRunningPath = false;
             HidePath();
             _isDoingPath = true;
-            _uiCamera.enabled = false;
+            SNCameraRoot.main.guiCam.enabled = false;
             Player player = Player.main;
             player.EnterLockedMode(null, false);
             player.SetHeadVisible(true);
@@ -303,7 +304,7 @@ namespace SubnauticaCinematicMod
             _isDoingPath = false;
             _timeElapsed = 0;
             _currentIndex = 0;
-            _uiCamera.enabled = true;
+            SNCameraRoot.main.guiCam.enabled = true;
             Player player = Player.main;
             player.ExitLockedMode(false, false);
             player.SetHeadVisible(false);
