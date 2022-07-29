@@ -39,7 +39,9 @@ with parameter time being the duration of the path in seconds. Example: `runpath
 - `Escape` : Stop path while it's rendering (like the `stoppath` command)
 
 ## Features planned
-[ ] GUI Edition of path
+- GUI Edition of path
+- More interpolations
+- More speed and path control
 
 ## Other
-License : [![License](https://img.shields.io/badge/license-CC--BY--NC-orange?style=flat-square&logo=creative-commons)](https://github.com/MoreOwO/Subnautica-Cinematic-Mod/blob/main/LICENSE.md)
+[![License](https://img.shields.io/badge/license-CC--BY--NC-orange?style=flat-square&logo=creative-commons)](https://github.com/MoreOwO/Subnautica-Cinematic-Mod/blob/main/LICENSE.md)
