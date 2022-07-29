@@ -18,10 +18,18 @@ adjust roll and FOV, then execute `addpoint` command.
 Once you have setup at least 2 points, you will be able to execute command : `runpath <time>`,
 with parameter time being the duration of the path in seconds. Example: `runpath 15` will make a 15 seconds long path.
 
-You can clear all the path points with the command : `clearpoints`
-You can stop a path while it's rendering with the command : `stoppath`
+## Commands
+`clearpoints` : Delete every previously set points.
 
-## Keybinds
+`stoppath` : Stop a path while it's rendering (similar to Escape).
+
+`togglepathpreview` : Toggle the path preview lines (red is linear, yellow is the true interpolated path).
+
+`addpoint` : Add a point at position, rotation and FOV of the camera.
+
+`runpath <time>` : Run the path for *\<time>* seconds 
+
+## Key Binds
 - `RightArrow` : roll right
 - `LeftArrow` : roll left
 - `DownArrow` : reset roll
@@ -31,5 +39,7 @@ You can stop a path while it's rendering with the command : `stoppath`
 - `Escape` : Stop path while it's rendering (like the `stoppath` command)
 
 ## Features planned
-- GUI Edition of path
-- Lines to show rendered path
+[ ] GUI Edition of path
+
+## Other
+License : [![License](https://img.shields.io/badge/license-CC--BY--NC-orange?style=flat-square&logo=creative-commons)](https://github.com/MoreOwO/Subnautica-Cinematic-Mod/blob/main/LICENSE.md)

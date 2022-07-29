@@ -33,4 +33,19 @@ public static class Commands
         PathManager.Instance.StopPath();
         return "Stopping path";
     }
+
+    [ConsoleCommand("togglepathpreview")]
+    public static string ShowPath()
+    {
+        if (PathManager.Instance.showLines)
+        {
+            PathManager.Instance.showLines = false;
+            PathManager.Instance.HidePath();
+            return "Toggled path off";
+        }
+
+        PathManager.Instance.showLines = true;
+        PathManager.Instance.ShowPath();
+        return "Toggled path on";
+    }
 }

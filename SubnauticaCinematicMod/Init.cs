@@ -10,7 +10,7 @@ namespace SubnauticaCinematicMod
     public class Initializer
     {
         // private static CameraMenu _cameraMenu;
-        public static PathManager _pathManager;
+        public static PathManager PathManager;
         [QModPatch]
         public static void InitializerMethod()
         {
@@ -28,7 +28,7 @@ namespace SubnauticaCinematicMod
         public static void Postfix()
         {
             Logger.Log(Logger.Level.Debug, "Postfix Awake");
-            Initializer._pathManager = PathManager.Instance;
+            Initializer.PathManager = PathManager.Instance;
         }
     }
 }

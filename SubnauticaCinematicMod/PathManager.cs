@@ -29,6 +29,7 @@ namespace SubnauticaCinematicMod
         private bool _firstTimeRunningPath = true;
         private readonly List<float> _segmentsDurations = new();
         private int _currentIndex;
+        public bool showLines = false;
 
         public static PathManager Instance
         {
@@ -53,7 +54,7 @@ namespace SubnauticaCinematicMod
             DontDestroyOnLoad(linearLineGO);
             linearLineGO.AddComponent<SceneCleanerPreserve>();
             _linearLine = linearLineGO.AddComponent<LineRenderer>();
-            _linearLine.startWidth = _linearLine.endWidth = 0.5f;
+            _linearLine.startWidth = _linearLine.endWidth = 0.1f;
             _linearLine.startColor = _linearLine.endColor = new Color(1f, 0, 0, 1f);
             _linearLine.material = UnityEngine.UI.Graphic.defaultGraphicMaterial;
 
@@ -63,7 +64,7 @@ namespace SubnauticaCinematicMod
             DontDestroyOnLoad(interpolatedLineGO);
             interpolatedLineGO.AddComponent<SceneCleanerPreserve>();
             _interpolatedLine = interpolatedLineGO.AddComponent<LineRenderer>();
-            _interpolatedLine.startWidth = _interpolatedLine.endWidth = 0.5f;
+            _interpolatedLine.startWidth = _interpolatedLine.endWidth = 0.1f;
             _interpolatedLine.startColor = _interpolatedLine.endColor = new Color(1f, 1f, 0, 1f);
             _interpolatedLine.material = UnityEngine.UI.Graphic.defaultGraphicMaterial;
         }
@@ -155,7 +156,7 @@ namespace SubnauticaCinematicMod
             else if (Input.GetKeyDown(KeyCode.KeypadEnter))
             {
                 Camera.main.fieldOfView = 70;
-            } else if (Input.GetKeyDown(KeyCode.Escape))
+            } else if (Input.GetKeyDown(KeyCode.Escape) && _isDoingPath)
             {
                 StopPathPlayerFree();
                 return;
@@ -192,7 +193,7 @@ namespace SubnauticaCinematicMod
             }
             var cameraTransform = camera.transform;
             _points.Add(new CameraPoint(cameraTransform.position, cameraTransform.rotation, camera.fieldOfView));
-            if (_points.Count > 1)
+            if (_points.Count > 1 && showLines)
             {
                 RefreshLine();
             }
@@ -231,22 +232,38 @@ namespace SubnauticaCinematicMod
                 lineSegments.Add(segment); 
             }
 
-            Vector3[] lineVectors = new Vector3[linePoints.Length];
-            for (int i = 0; i < linePoints.Length - 1; i++)
+            Vector3[] lineVectors = new Vector3[linePoints.Length - 2];
+            for (int i = 1; i < linePoints.Length - 1; i++)
             {
-                lineVectors[i] = linePoints[i].Position;
+                lineVectors[i - 1] = linePoints[i].Position;
             }
             if (_linearLine == null) Logger.Log(Logger.Level.Debug, "Linear Line, null");
+            _linearLine.positionCount = lineVectors.Length;
             _linearLine.SetPositions(lineVectors);
 
-            for (float i = 0; i < lineSegments.Count - 1; i += InterpolatedLineSmoothness)
+            for (float i = 0; i < lineSegments.Count; i += InterpolatedLineSmoothness)
             {
                 int currentSegmentIndex = CurrentSegmentIndex(i, 1);
                 float timeInSegment = (i - currentSegmentIndex * 1) / ((currentSegmentIndex + 1) * 1 - currentSegmentIndex * 1);
                 interpolatedPoints.Add(CatmullUtils.GetPoint(lineSegments[currentSegmentIndex], timeInSegment));
             }
             if (_interpolatedLine == null) Logger.Log(Logger.Level.Debug, "Interpolated line, null");
+            _interpolatedLine.positionCount = interpolatedPoints.Count;
             _interpolatedLine.SetPositions(interpolatedPoints.ToArray());
+        }
+
+        public void ShowPath()
+        {
+            if (_points.Count > 1 && showLines)
+            {
+                RefreshLine();
+            }
+        }
+
+        public void HidePath()
+        {
+            _linearLine.positionCount = 0;
+            _interpolatedLine.positionCount = 0;
         }
 
         public void StopPath()
@@ -263,7 +280,7 @@ namespace SubnauticaCinematicMod
                 _firstTimeRunningPath = false;
                 return;
             }
-
+            HidePath();
             _isDoingPath = true;
             Player player = Player.main;
             player.EnterLockedMode(null, false);
@@ -278,6 +295,7 @@ namespace SubnauticaCinematicMod
                 Logger.Log(Logger.Level.Error, "Player.main is null at disabled cinematic mode, restart your game", showOnScreen:true);
                 return;
             }
+            ShowPath();
             _isDoingPath = false;
             _timeElapsed = 0;
             _currentIndex = 0;
